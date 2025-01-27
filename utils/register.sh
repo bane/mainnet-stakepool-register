@@ -69,8 +69,8 @@ while true; do
 
 done
 
-# Retrieve tx-ins
-TX_INS=$(jq -r 'keys[]' ${WALLET_NAME}.utxo.json | awk '{print "--tx-in " $1}' | paste -sd " " -)
+STAKE_ADDRESS_DEPOSIT=$(cat ${WALLET_NAME}.parameters.json | jq -r .stakeAddressDeposit)
+echo "StakeAddressDeposite: $STAKE_ADDRESS_DEPOSIT"
 
 # Calculate the amount to send
 if (( STAKE_ADDRESS_DEPOSIT > 0 )); then
@@ -78,38 +78,6 @@ if (( STAKE_ADDRESS_DEPOSIT > 0 )); then
 else
   SEND_AMOUNT_LOVELACE=1000000 # 1 APEX
 fi
-
-# Get current slot
-CURRENT_SLOT=$(../bin/cardano-cli query tip $MAGIC --socket-path ../ipc/node.socket | jq -r '.slot')
-echo "Current Slot: $CURRENT_SLOT"
-
-# Build raw transaction
-../bin/cardano-cli transaction build-raw $TX_INS \
-  --tx-out $(cat ${WALLET_NAME}.payment.addr)+$SEND_AMOUNT_LOVELACE \
-  --tx-out $(cat ${WALLET_NAME}.payment.addr)+$((TOTAL_BALANCE - SEND_AMOUNT_LOVELACE - 200000)) \
-  --invalid-hereafter $((CURRENT_SLOT + 10000)) \
-  --fee 200000 \
-  --certificate ${WALLET_NAME}.stake.cert \
-  --out-file ${WALLET_NAME}.tx.raw
-echo "Built raw transaction"
-
-# Sign the transaction
-../bin/cardano-cli transaction sign \
-  --tx-body-file ${WALLET_NAME}.tx.raw \
-  --signing-key-file ${WALLET_NAME}.payment.skey \
-  --signing-key-file ${WALLET_NAME}.stake.skey \
-  $MAGIC \
-  --out-file ${WALLET_NAME}.tx.signed
-echo "Signed the transaction"
-
-# Submit the transaction and wait for confirmation
-../bin/cardano-cli transaction submit \
-  --tx-file ${WALLET_NAME}.tx.signed \
-  $MAGIC \
-  --socket-path ../ipc/node.socket
-
-wait_for_confirmation $(cat ${WALLET_NAME}.payment.addr)
-echo "Registered stake address on blockchain"
 
 # Generate pool registration certificate
 ../bin/cardano-cli stake-pool registration-certificate \
@@ -154,11 +122,13 @@ TOTAL_BALANCE=$(jq -r '[.[] | .value.lovelace] | add' ${WALLET_NAME}.utxo.json)
 echo "Total Balance: $TOTAL_BALANCE"
 
 # Build raw transaction
+# Calculate: (TOTAL_BALANCE - (FEE + STAKING_KEY_DEPOSIT + POOL_REGISTRATION_DEPOSTI))
+# MAINNET:   (TOTAL_BALANCE - (200000 + 2000000 + 5000000))
 ../bin/cardano-cli transaction build-raw $TX_INS \
-  --tx-out $(cat ${WALLET_NAME}.payment.addr)+$POOL_PLEDGE_LOVELACE \
-  --tx-out $(cat ${WALLET_NAME}.payment.addr)+$((TOTAL_BALANCE - POOL_PLEDGE_LOVELACE - 200000)) \
+  --tx-out $(cat ${WALLET_NAME}.payment.addr)+$((TOTAL_BALANCE - 7200000)) \
   --invalid-hereafter $((CURRENT_SLOT + 10000)) \
   --fee 200000 \
+  --certificate-file ${WALLET_NAME}.stake.cert \
   --certificate-file ${WALLET_NAME}.pool.cert \
   --certificate-file ${WALLET_NAME}.deleg.cert \
   --out-file ${WALLET_NAME}.tx-pledge.raw
