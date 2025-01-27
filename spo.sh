@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-NETWORK_NAME=${1:-testnet}
-WALLET_NAME=${2:-testnet.prime.sp01}
+NETWORK_NAME=${1:-mainnet}
+WALLET_NAME=${2:-mainnet.prime.sp01}
 METADATA_URL=$3
 RELAY_LB=$4
 POOL_PLEDGE=${5:-25}
