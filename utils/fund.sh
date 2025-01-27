@@ -35,6 +35,7 @@ if [ ! -f "${WALLET_NAME}.metadata.json" ]; then
   exit 1
 else
   echo "Downloaded stake pool metadata from $METADATA_URL"
+  echo "Ticker: `cat ${WALLET_NAME}.metadata.json | jq -r .ticker`"
 fi
 
 # Generate metadata hash

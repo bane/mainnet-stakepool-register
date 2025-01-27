@@ -172,10 +172,14 @@ echo "Waiting for confirmation"
 wait_for_confirmation $(cat ${WALLET_NAME}.payment.addr)
 
 # Get stake pool ID if not already retrieved
-../bin/cardano-cli stake-pool id --cold-verification-key-file ${WALLET_NAME}.node.vkey --output-format hex > ${WALLET_NAME}.pool-id.txt
-echo "Retrieved hex stake pool ID: `(cat ${WALLET_NAME}.pool-id.txt)`"
+../bin/cardano-cli stake-pool id --cold-verification-key-file ${WALLET_NAME}.node.vkey > ${WALLET_NAME}.pool-id.txt
+echo "Retrieved stake pool ID: `(cat ${WALLET_NAME}.pool-id.txt)`"
 
-POOL_ID_HEX=$(cat ${WALLET_NAME}.pool-id.txt)
+# Get stake pool ID if not already retrieved (hex)
+../bin/cardano-cli stake-pool id --cold-verification-key-file ${WALLET_NAME}.node.vkey --output-format hex > ${WALLET_NAME}.pool-id-hex.txt
+echo "Retrieved hex stake pool ID: `(cat ${WALLET_NAME}.pool-id-hex.txt)`"
+
+POOL_ID_HEX=$(cat ${WALLET_NAME}.pool-id-hex.txt)
 POOL_ID_BASE64=$(echo -n $POOL_ID_HEX | xxd -r -p | base64)
 echo "Congratulations, this is your new stake pool registered - $POOL_ID_BASE64"
 
