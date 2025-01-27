@@ -43,17 +43,8 @@ cat ${WALLET_NAME}.change.xprivate | ../bin/cardano-address key public --with-ch
 # convert to regular private and public keys
 cat ${WALLET_NAME}.payment.xpublic | ../bin/cardano-address address payment --network-tag $NETWORK > ${WALLET_NAME}.candidate.addr
 cat ${WALLET_NAME}.candidate.addr | ../bin/cardano-address address delegation $(cat ${WALLET_NAME}.stake.xpublic) > ${WALLET_NAME}.payment.candidate.addr
-cat ${WALLET_NAME}.payment.candidate.addr | ../bin/cardano-address address inspect
 cat ${WALLET_NAME}.payment.candidate.addr | ../bin/bech32 | ../bin/bech32 $BATCH32_FIX > ${WALLET_NAME}.payment.candidate.addr.fixed
 mv ${WALLET_NAME}.payment.candidate.addr.fixed ${WALLET_NAME}.payment.candidate.addr
-
-# inspect keys
-cat ${WALLET_NAME}.payment.xprivate | ../bin/cardano-address key inspect
-cat ${WALLET_NAME}.payment.xpublic | ../bin/cardano-address key inspect
-cat ${WALLET_NAME}.stake.xprivate | ../bin/cardano-address key inspect
-cat ${WALLET_NAME}.stake.xpublic | ../bin/cardano-address key inspect
-cat ${WALLET_NAME}.candidate.addr | ../bin/cardano-address address inspect
-cat ${WALLET_NAME}.payment.candidate.addr | ../bin/cardano-address address inspect
 
 # convert extended signing keys to corresponding Shelley format keys
 ../bin/cardano-cli key convert-cardano-address-key --shelley-payment-key --signing-key-file ${WALLET_NAME}.payment.xprivate --out-file ${WALLET_NAME}.payment.skey
